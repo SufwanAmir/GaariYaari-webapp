@@ -1,5 +1,5 @@
 // ===== Configuration =====
-const API_URL = 'http://localhost:5000/api';
+const API_URL = '/api';
 
 // ===== UI Helpers (Toast & Modal) =====
 function showToast(message, type = 'info') {

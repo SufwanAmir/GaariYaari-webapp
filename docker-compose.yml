@@ -1,0 +1,51 @@
+services:
+  frontend:
+    image: sufwanamir/gaariyaari-frontend:1.0
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: gaariyaari-frontend
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    image: sufwanamir/gaariyaari-backend:1.0
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gaariyaari-backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5002:5000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7.0
+    container_name: gaariyaari-mongodb
+    command: ["mongod", "--auth"]
+    ports:
+      - "27018:27017"
+    volumes:
+      - gaariyaari_mongo_data:/data/db
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - "db.adminCommand('ping').ok"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  gaariyaari_mongo_data:
+    external: true
