@@ -46,18 +46,45 @@ pipeline {
                     set -eu
 
                     echo "Waiting for frontend..."
+                    frontend_ready=0
+
                     for i in $(seq 1 30); do
                         if curl -fsS http://localhost:8082/html/index.html >/dev/null; then
+                            frontend_ready=1
                             break
                         fi
                         sleep 2
                     done
 
-                    curl -fsS http://localhost:8082/html/index.html >/dev/null
-                    curl -fsS http://localhost:5003/ >/dev/null
+                    if [ "$frontend_ready" -ne 1 ]; then
+                        echo "Frontend did not become ready."
+                        exit 1
+                    fi
 
-                    echo "Frontend and backend are responding."
+                    echo "Frontend is responding."
+
+                    echo "Waiting for backend..."
+                    backend_ready=0
+
+                    for i in $(seq 1 30); do
+                        if curl -fsS http://localhost:5003/ >/dev/null; then
+                            backend_ready=1
+                            break
+                        fi
+                        sleep 2
+                    done
+
+                    if [ "$backend_ready" -ne 1 ]; then
+                        echo "Backend did not become ready."
+                        exit 1
+                    fi
+
+                    echo "Backend is responding."
+
+                    echo "Checking containers..."
                     docker ps --filter "name=gaariyaari-"
+
+                    echo "Part II deployment verified successfully."
                 '''
             }
         }
